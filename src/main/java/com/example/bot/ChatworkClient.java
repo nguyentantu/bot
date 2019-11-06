@@ -16,7 +16,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by ThanhD
@@ -37,7 +39,7 @@ public class ChatworkClient {
      */
     private static final String CB_API_KEY = "XZHaeVUjjfpBPkhC89jlbdRhcXz25S6kOxY4mvN4"; //Replace your Simsimi API Key
     private static final String CB_API_URL = "http://sandbox.api.simsimi.com/request.p";
-//    private static final String CB_API_URL = "http://sandbox.api.simsimi.com/request.p?key=%KEY%&lc=en&ft=0.0&text=%TEXT%";
+    //    private static final String CB_API_URL = "http://sandbox.api.simsimi.com/request.p?key=%KEY%&lc=en&ft=0.0&text=%TEXT%";
     private static final String BOT_ID = "[To:4302388]"; //Replace XXXXX to ID ChatWork of Bot
     private static final String CB_HEADER_NAME = "X-ChatBotToken";
 
@@ -56,7 +58,7 @@ public class ChatworkClient {
         System.out.println("**********BOT STARTED**********");
 
 // Notify to room
-        sendMessage(roomId, "TO ALL >>> BOT STARTED!");
+        sendMessage(roomId, "CHAO CAC CAU, MINH LA BOT DAY!!");
         System.out.println("2");
         StringBuilder messReply = new StringBuilder();
         int mentionRoomNum = 0;
@@ -65,7 +67,8 @@ public class ChatworkClient {
 // Check the number of messages mention BOT
                 BotStatus status = mapper.readValue(
                         get(CW_API_URL.concat("/rooms/").concat(roomId), CW_HEADER_NAME, CW_API_TOKEN),
-                        new TypeReference<BotStatus>() {});
+                        new TypeReference<BotStatus>() {
+                        });
 
                 mentionRoomNum = status.mentionRoomNum;
             } catch (Exception e) {
@@ -132,46 +135,31 @@ public class ChatworkClient {
      * @return message
      */
     public String getMessageFromBot(String text) throws IOException, JSONException {
-//        String message = StringUtils.EMPTY;
-//        if (StringUtils.isBlank(text)) {
-//            return message;
-//        }
-//
-//        try {
-//            String json = get(CB_API_URL.replace("%KEY%", CB_API_KEY)
-//                            .replace("%TEXT%", URLEncoder.encode(text, "UTF-8")),
-//                    CB_HEADER_NAME, CB_API_KEY);
-//
-//            String[] results = json.split(",");
-//
-//            message = results[0].split(":")[1];
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return StringUtils.EMPTY;
-//        }
-//
-//        return StringUtils.remove(message, "\"");
+        String message;
 
         URL url = new URL("https://wsapi.simsimi.com/190410/talk");
-
-
 
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
         conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("x-api-key", "AXN38FpcSNgiJzNwnlnhEKJzdLCHyLPoI+AeTVkZ");
-        JSONObject jsonParam = new JSONObject();
-        jsonParam.put("utext", text);
-        jsonParam.put("lang", "vi");
-//        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+        conn.setRequestProperty("Accept","application/json");
+        conn.setRequestProperty("x-api-key", "XZHaeVUjjfpBPkhC89jlbdRhcXz25S6kOxY4mvN4");
+        conn.setDoOutput(true);
 
-//        String jsonInputString = "{\"utext\": \"hi\", \"lang\": \"vi\"}";
-//        try(OutputStream os = conn.getOutputStream()) {
-//            byte[] input = jsonInputString.getBytes("utf-8");
-//            os.write(input, 0, input.length);
-//        }
+        String jsonInputString = "{\"utext\": \"haha\", \"lang\": \"vi\"}";
+        System.out.println(jsonInputString);
 
+        String jsonInput1 = "{\"utext\": \"";
+        String jsonInput2 = "\", \"lang\": \"vi\"}";
+        StringBuilder inputData = new StringBuilder();
+        inputData.append(jsonInput1).append(text).append(jsonInput2);
+        System.out.println(inputData);
+
+        try(OutputStream os = conn.getOutputStream()) {
+            byte[] input = inputData.toString().getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
         try(BufferedReader br = new BufferedReader(
                 new InputStreamReader(conn.getInputStream(), "utf-8"))) {
             StringBuilder response = new StringBuilder();
@@ -179,92 +167,11 @@ public class ChatworkClient {
             while ((responseLine = br.readLine()) != null) {
                 response.append(responseLine.trim());
             }
-            System.out.println("aaaaaaaaaa"+response.toString());
+            JSONObject jsonObject = new JSONObject(response.toString());
+            message = jsonObject.getString("atext");
+            System.out.println(message);
         }
-
-
-//        DataOutputStream os = new DataOutputStream(conn.getOutputStream());
-//        os.writeBytes(jsonParam.toString());
-//        InputStreamReader isr = new InputStreamReader(conn.getInputStream(), "UTF-8");
-//        BufferedReader br = new BufferedReader(isr);
-//        StringBuilder builder = new StringBuilder();
-//        String line = null;
-//        while ((line = br.readLine()) != null) {
-//            builder.append(line);
-//        }
-//        System.out.println(builder.toString());
-//
-//        br.close();
-//
-//        os.flush();
-//        os.close();
-
-//        JSONObject jsonObject = new JSONObject();
-//        jsonObject.put("utext", text);
-//        jsonObject.put("lang", "vi");
-//
-//        OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
-//        wr.write(jsonObject.toString());
-//        wr.flush();
-
-//        try (OutputStream os = conn.getOutputStream()) {
-//            byte[] input = jsonInputString.getBytes("utf-8");
-//            os.write(input, 0, input.length);
-//        }
-
-//        try (BufferedReader br = new BufferedReader(
-//                new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-//            StringBuilder response = new StringBuilder();
-//            String responseLine = null;
-//            while ((responseLine = br.readLine()) != null) {
-//                response.append(responseLine.trim());
-//            }
-//            System.out.println("////////////" + response.toString());
-//        }
-
-//        Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-//
-//        // Get the response body output from the server
-//        StringBuilder calculatedOutput = new StringBuilder();
-//        String rawOutputLine;
-//        if (in.ready()) {
-//            while ((rawOutputLine = ((BufferedReader) in).readLine()) != null) {
-//                calculatedOutput.append(rawOutputLine);
-//            }
-//
-//            System.out.println("++++++++" + calculatedOutput.toString());
-//            in.close();
-//
-//        }
-//        JSONObject jsonObject1 = new JSONObject(calculatedOutput.toString());
-//        System.out.println("---------"+jsonObject1);
-
-//        GetMethod method = null;
-//        try {
-//            method = new GetMethod(path);
-//            method.addRequestHeader(headerName, apiKey);
-//
-//            int statusCode = httpClient.executeMethod(method);
-//
-//            System.out.println(statusCode+"");
-//
-//            System.out.println( method.getResponseBodyAsString());
-//
-//            if (statusCode != HttpStatus.SC_OK) {
-//                throw new Exception("Response is not valid. Check your API Key or ChatWork API status. response_code = "
-//                        + statusCode + ", message =" + method.getResponseBodyAsString());
-//            }
-//
-//            return method.getResponseBodyAsString();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return StringUtils.EMPTY;
-//        } finally {
-//            if (method != null) {
-//                method.releaseConnection();
-//            }
-//        }
-        return "hhhh";
+        return message;
     }
 
     /**
@@ -328,50 +235,6 @@ public class ChatworkClient {
      * @throws IOException
      */
     private String get(String path, String headerName, String apiKey) throws IOException, JSONException {
-
-
-//        URL url = new URL("https://wsapi.simsimi.com/190410/talk");
-//
-//        String jsonInputString = "{\"utext\": \"hi\", \"lang\": \"vi\"}";
-//
-//        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//
-//        conn.setRequestMethod("POST");
-//        conn.setRequestProperty("Content-Type", "application/json");
-//        conn.setRequestProperty("x-api-key", "AXN38FpcSNgiJzNwnlnhEKJzdLCHyLPoI+AeTVkZ");
-//        conn.setDoOutput(true);
-//
-//        try (OutputStream os = conn.getOutputStream()) {
-//            byte[] input = jsonInputString.getBytes("utf-8");
-//            os.write(input, 0, input.length);
-//        }
-//
-//        try (BufferedReader br = new BufferedReader(
-//                new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-//            StringBuilder response = new StringBuilder();
-//            String responseLine = null;
-//            while ((responseLine = br.readLine()) != null) {
-//                response.append(responseLine.trim());
-//            }
-//            System.out.println("////////////" + response.toString());
-//        }
-//
-//        Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-//
-//        // Get the response body output from the server
-//        StringBuilder calculatedOutput = new StringBuilder();
-//        String rawOutputLine;
-//        if (in.ready()) {
-//            while ((rawOutputLine = ((BufferedReader) in).readLine()) != null) {
-//                calculatedOutput.append(rawOutputLine);
-//            }
-//
-//            System.out.println("++++++++" + calculatedOutput.toString());
-//            in.close();
-//
-//        }
-//        JSONObject jsonObject = new JSONObject(calculatedOutput.toString());
-//        System.out.println(jsonObject+"");
 
         GetMethod method = null;
         try {

@@ -10,15 +10,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by ThanhD
@@ -151,7 +150,7 @@ public class ChatworkClient {
         System.out.println(jsonInputString);
 
         String jsonInput1 = "{\"utext\": \"";
-        String jsonInput2 = "\", \"lang\": \"vi\"}";
+        String jsonInput2 = "\", \"lang\": \"vi\", \"text_bad_prob_max\" : "+"1.0}";
         StringBuilder inputData = new StringBuilder();
         inputData.append(jsonInput1).append(text).append(jsonInput2);
         System.out.println(inputData);

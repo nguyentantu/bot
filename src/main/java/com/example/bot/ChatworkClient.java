@@ -16,8 +16,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by ThanhD
@@ -29,18 +28,20 @@ public class ChatworkClient {
      * DOCS: http://download.chatwork.com/ChatWork_API_Documentation.pdf
      */
     private static final String CW_API_URL = "https://api.chatwork.com/v2";
-    private static final String CW_API_TOKEN = "b8277b78013f6d479757a6afea31616a"; //Replace your ChatWork API Token
+    private static final String CW_API_TOKEN = "b8277b78013f6d479757a6afea31616a"; //ChatWork API Token
     private static final String CW_HEADER_NAME = "X-ChatWorkToken";
 
     /**
      * PARAM FOR CHAT BOT API
      * DOCS: SimSimi API
      */
-    private static final String CB_API_KEY = "XZHaeVUjjfpBPkhC89jlbdRhcXz25S6kOxY4mvN4"; //Replace your Simsimi API Key
+    private static final String CB_API_KEY = "S1nr1xpuH5AyQyRGukB/IFK7gZ9VB6+LO3nuP77B"; //Simsimi API Key
     private static final String CB_API_URL = "http://sandbox.api.simsimi.com/request.p";
-    //    private static final String CB_API_URL = "http://sandbox.api.simsimi.com/request.p?key=%KEY%&lc=en&ft=0.0&text=%TEXT%";
-    private static final String BOT_ID = "[To:4302388]"; //Replace XXXXX to ID ChatWork of Bot
+    private static final String BOT_ID = "[To:4302388]"; //to ID ChatWork of Bot
     private static final String CB_HEADER_NAME = "X-ChatBotToken";
+    private static final String ID = "4302388";
+    private static final String GREETING = "Chém gió không có gì là xấu, " +
+            "quan trọng là có biết cái gì đâu mà chém ^-^ (devil)";
 
     private boolean breakFlag = false;
 
@@ -56,14 +57,13 @@ public class ChatworkClient {
     public void startChatBot(String roomId) throws Exception {
         System.out.println("**********BOT STARTED**********");
 
-// Notify to room
-        sendMessage(roomId, "CHAO CAC CAU, MINH LA BOT DAY!!");
-        System.out.println("2");
+        // Notify to room
+        sendMessage(roomId, "CHÀO CÁC CẬU, LẠI LÀ MÌNH !! (devil)");
         StringBuilder messReply = new StringBuilder();
         int mentionRoomNum = 0;
         while (!breakFlag) {
             try {
-// Check the number of messages mention BOT
+        // Check the number of messages mention BOT
                 BotStatus status = mapper.readValue(
                         get(CW_API_URL.concat("/rooms/").concat(roomId), CW_HEADER_NAME, CW_API_TOKEN),
                         new TypeReference<BotStatus>() {
@@ -76,13 +76,14 @@ public class ChatworkClient {
 
             if (mentionRoomNum > 0) {
                 getMessages(roomId).forEach(message -> {
-                    if (message.body.startsWith(BOT_ID)) {
-// Get message from room of ChatWork
-                        String messSend = message.body.substring(message.body.indexOf("\n") + 1);
+                    if (!message.account.accountId.equals(ID) || message.body.contains(BOT_ID)
+                            || message.body.startsWith("[toall]")) {
+                        // Get message from room of ChatWork
+                        String messSend = message.body.substring(message.body.lastIndexOf("\n") + 1);
 
-// Check request BOT stop?
+                        // Check request BOT stop?
                         if ("STOP".equals(messSend)) {
-// Notify to room
+                        // Notify to room
                             try {
                                 sendMessage(roomId, "TO ALL >>> BOT STOPPED!");
                             } catch (IOException e) {
@@ -92,16 +93,16 @@ public class ChatworkClient {
                             return;
                         }
 
-// Make new message from BOT
+                        // Make new message from BOT
                         try {
                             System.out.println(messSend);
-                            messReply.append("\n")
-                                    .append("[To:")
+                            messReply.append("[To:")
                                     .append(message.account.accountId)
                                     .append("] ")
                                     .append(message.account.name)
                                     .append("\n")
-                                    .append(getMessageFromBot(messSend));
+                                    .append(getMessageFromBot(messSend))
+                                    .append(" (emo)");
                             System.out.println(messReply.toString());
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -109,14 +110,14 @@ public class ChatworkClient {
                             e.printStackTrace();
                         }
 
-// Send message of Bot to the previous sender
+                        // Send message of Bot to the previous sender
                         try {
                             sendMessage(roomId, messReply.toString());
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
 
-// Clear messReply
+                        // Clear messReply
                         messReply.setLength(0);
                     }
                 });
@@ -143,11 +144,8 @@ public class ChatworkClient {
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
         conn.setRequestProperty("Accept","application/json");
-        conn.setRequestProperty("x-api-key", "XZHaeVUjjfpBPkhC89jlbdRhcXz25S6kOxY4mvN4");
+        conn.setRequestProperty("x-api-key", CB_API_KEY);
         conn.setDoOutput(true);
-
-        String jsonInputString = "{\"utext\": \"haha\", \"lang\": \"vi\"}";
-        System.out.println(jsonInputString);
 
         String jsonInput1 = "{\"utext\": \"";
         String jsonInput2 = "\", \"lang\": \"vi\", \"text_bad_prob_max\" : "+"1.0}";
@@ -208,9 +206,9 @@ public class ChatworkClient {
         try {
             method = new PostMethod(CW_API_URL.concat("/rooms/").concat(roomId).concat("/messages"));
             method.addRequestHeader("X-ChatWorkToken", CW_API_TOKEN);
-            method.addRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+            method.addRequestHeader("Content-type",
+                    "application/x-www-form-urlencoded; charset=UTF-8");
             method.setParameter("body", message);
-            System.out.println("messsssss"+message);
             int statusCode = httpClient.executeMethod(method);
             if (statusCode != HttpStatus.SC_OK) {
                 throw new Exception("Response is not valid. Check your API Key or ChatWork API status. response_code = "
@@ -261,4 +259,62 @@ public class ChatworkClient {
             }
         }
     }
-}
+
+    public List<String> listRoom() {
+
+        List<String> idRooms = new ArrayList<>();
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        HttpClient httpClient = new HttpClient();
+        GetMethod method = null;
+        try {
+            method = new GetMethod("https://api.chatwork.com/v2/rooms");
+            method.addRequestHeader("X-ChatWorkToken", "b8277b78013f6d479757a6afea31616a");
+
+            int statusCode = httpClient.executeMethod(method);
+
+            System.out.println(statusCode+"");
+
+            List<Room> list= mapper.readValue(method.getResponseBodyAsString(), new TypeReference<List<Room>>() {});
+            System.out.println("lissr"+list);
+
+            for (Room room: list) {
+                idRooms.add(room.room_id);
+            }
+
+//            Set<String> strings = Collections.singleton(method.getResponseBodyAsString());
+//            String[] arrayOfString = convert(strings);
+//            System.out.println("Array of String: " + Arrays.toString(arrayOfString));
+//
+//            System.out.println( "222222222222222"+method.getResponseBodyAsString());
+
+            if (statusCode != HttpStatus.SC_OK) {
+                throw new Exception("Response is not valid. Check your API Key or ChatWork API status. response_code = "
+                        + statusCode + ", message =" + method.getResponseBodyAsString());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (method != null) {
+                method.releaseConnection();
+            }
+        }
+        return idRooms;
+    }
+
+    public static String[] convert(Set<String> setOfString) {
+        // Create String[] of size of setOfString
+        String[] arrayOfString = new String[setOfString.size()];
+
+        // Copy elements from set to string array
+        // using advanced for loop
+        int index = 0;
+        for (String str : setOfString)
+            arrayOfString[index++] = str;
+
+        // return the formed String[]
+        return arrayOfString;
+    }
+    }
